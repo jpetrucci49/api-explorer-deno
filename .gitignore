@@ -1,0 +1,15 @@
+# Logs and temp
+*.log
+*.pid
+*.tmp
+
+# macOS
+.DS_Store
+
+deno.lock
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo

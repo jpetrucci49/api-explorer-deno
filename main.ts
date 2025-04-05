@@ -7,7 +7,7 @@ await load({ export: true }); // Loads .env into Deno.env
 const TOKEN = Deno.env.get("GITHUB_TOKEN");
 const PORT = Number(Deno.env.get("PORT")) || 3005;
 const CACHE_TTL = 30 * 60 * 1000; // 30 minutes TTL (time to live) in ms
-const cache = new Map<string, { result: {[key: string]: string | number | boolean | null}; timestamp: number }>();
+const cache = new Map<string, { data: {[key: string]: string | number | boolean | null}; timestamp: number }>();
 
 setup({
   handlers: {
@@ -54,7 +54,7 @@ const handler = async (req: Request): Promise<Response> => {
   const cacheKey = `github:${username}`;
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) { // if cached is not 'undefined' and timestamp is less than 30 minutes old
-    return new Response(JSON.stringify(cached.result), { // Set status 200, and X-Cache to "HIT", RETURN result to terminate.
+    return new Response(JSON.stringify(cached.data), { // Set status 200, and X-Cache to "HIT", RETURN data to terminate.
       status: 200,
       headers: {
         "Content-Type": "application/json",
@@ -79,9 +79,9 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { "Content-Type": "application/json" },
       });
     }
-    const result = await response.json();
-    cache.set(cacheKey, { result, timestamp: Date.now() }); // If we've made it here, result is stale or has not been cached, so cache it. timestamp used to keep fresh.
-    return new Response(JSON.stringify(result), {
+    const data = await response.json();
+    cache.set(cacheKey, { data, timestamp: Date.now() }); // If we've made it here, data is stale or has not been cached, so cache it. timestamp used to keep fresh.
+    return new Response(JSON.stringify(data), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

@@ -45,7 +45,7 @@ const withLogging = (handler: (req: Request) => Promise<Response>) => {
 const commonHeaders = {
   "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "http://localhost:3000",
-  "Access-Control-Allow-Methods": "GET",
+  "Access-Control-Allow-Methods": "GET, POST",
   "Access-Control-Allow-Headers": "*",
   "Access-Control-Expose-Headers": "X-Cache",
   "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
@@ -84,6 +84,23 @@ const analyzeProfile = async (username: string): Promise<AnalysisResponse> => {
 };
 
 const handler = async (req: Request): Promise<Response> => {
+  const url = new URL(req.url);
+
+  if (url.pathname === "/clear-cache") {
+    try {
+      await redis.flushdb();
+      return new Response(JSON.stringify({ detail: "Cache cleared successfully" }), {
+        status: 200,
+        headers: commonHeaders,
+      });
+    } catch (error) {
+      return new Response(JSON.stringify({ detail: "Failed to clear cache", error }), {
+        status: 500,
+        headers: commonHeaders,
+      });
+    }
+  }
+
   if (req.method !== "GET") {
     return new Response(JSON.stringify({ detail: "Method Not Allowed" }), {
       status: 405,
@@ -91,7 +108,6 @@ const handler = async (req: Request): Promise<Response> => {
     });
   }
 
-  const url = new URL(req.url);
   const username = url.searchParams.get("username");
   if (!username) {
     return new Response(JSON.stringify({ detail: "Username is required" }), {

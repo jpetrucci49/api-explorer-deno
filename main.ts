@@ -130,6 +130,14 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   const username = url.searchParams.get("username");
+  
+  if (username === 'test429'){
+    return new Response(
+      JSON.stringify({ detail: { status: 429, detail: 'GitHub rate limit exceeded', extra: { remaining: '0' } } }),
+      { status: 429, headers: commonHeaders }
+    );
+  }
+
   if (!username) {
     return new Response(
       JSON.stringify({ detail: { status: 400, detail: "Username is required", extra: {} } }),
